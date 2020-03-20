@@ -1,7 +1,15 @@
 #!/usr/bin/env python
 # coding: utf-8
 from distutils.core import setup
-from os import path
+from os import path, chdir, system
+from sys import argv
+
+if "upload" in argv:
+    chdir("json_compare")
+    print("running test")
+    assert system("python test_json_compare.py") == 0
+    chdir("..")
+
 this_directory = path.abspath(path.dirname(__file__))
 
 try:
@@ -12,11 +20,11 @@ except:
 
 setup(
     name='jsoncomparedeep',
-    version='1.15',
+    version='1.16',
     description='A recursive json comparison library that handles list orders and fuzzy types',
     author='Rainy Chan',
     author_email='rainydew@qq.com',
-    url='https://rainydew.blog.csdn.net/article/details/93904318',
+    url='https://github.com/rainydew/jsoncomparedeep',
     packages=['json_compare'],
     install_requires=['six>=1.12.0'],
     keywords='json comparison order unicode fuzzy',

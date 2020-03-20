@@ -1,7 +1,7 @@
-# Json_Compare
+# json_compare
 
-A library to compare any json string/json-like objects.
-Version 1.14 is a quickfix version that fixes the bug of losing ignore_path parameter when handling json-strings.
+A library to compare any json string/bytes/json-like-objects.
+Version 1.16 is a quickfix version that supports Python 3.8.
 
 ## Features
 
@@ -62,3 +62,4 @@ For more demos and information, just install it and visit the test file **test_j
 ## Bug report
 
 * Issues and bugs report to rainydew@qq.com.
+* Homepage icon leads to my Github project page, issues / PRs / stars are welcomed :)
