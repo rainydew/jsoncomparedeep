@@ -70,11 +70,15 @@ class Jcompare(object):
 
     def _turn_dict_keys_to_unicode(self, dic):
         keys = dic.keys()
+        modifiers = []
         for key in keys:  # a.keys() returns a constant, so it is safe because ak won't change
             if type(key) == six.binary_type:
-                self._modify_a_key(dic, key, self._to_unicode_if_string(key))
+                modifiers.append((key, self._to_unicode_if_string(key)))
             else:
                 assert type(key) == six.text_type, 'key {} must be string or unicode in dict {}'.format(key, dic)
+                
+        for from_key, to_key in modifiers:
+            self._modify_a_key(dic, from_key, to_key)
 
     def _set_false(self):
         self._res = False

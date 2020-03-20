@@ -17,6 +17,7 @@ Version 1.14 is a quickfix version that fixes the bug of losing ignore_path para
 * The ignore_path list now support regular expressions too. You can use *[r"^(/\d+/a)"]* as ignore_path to skip all keys named "a" in *[{"a": 1, "b": 2}, {"a": 1, "b": 4}]* but still compare the value of "b". (New)
   * Useful when compare multi records in database query result (dictionary cursor) with some fields unconcerned.
 * Fuzzy equal when handling floats. (New)
+* Python 3.8 supported. (New)
 
 ## QuickStart
 
