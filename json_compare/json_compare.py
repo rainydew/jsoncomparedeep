@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 # author: Rainy Chan rainydew@qq.com
-# platform: python 2.7 or 3.6
+# platform: python 2.6-2.7, 3.5-3.8+
 # demos are provided in test_json_compare.py
+from __future__ import print_function
 import json
 import re
 import traceback
@@ -24,6 +25,7 @@ class Jcompare(object):
         self._ignore_list_seq = None
         self._re_compare = True
         self._ignore_path = None
+        self._handle = print
 
     @staticmethod
     def _tuple_append(t, i):
@@ -100,41 +102,41 @@ class Jcompare(object):
     # difference_print methods
     def _different_type(self, a, b, root):
         self._set_false()
-        print("different type at /{}".format("/".join(root)))
-        print("a {}: ".format(type(a)) + repr(a))
-        print("b {}: ".format(type(b)) + repr(b))
+        self._handle("different type at /{}".format("/".join(root)))
+        self._handle("a {}: ".format(type(a)) + repr(a))
+        self._handle("b {}: ".format(type(b)) + repr(b))
 
     def _different_value(self, a, b, root):
         self._set_false()
-        print("different value at /{}".format("/".join(root)))
-        print("a: " + repr(a))
-        print("b: " + repr(b))
+        self._handle("different value at /{}".format("/".join(root)))
+        self._handle("a: " + repr(a))
+        self._handle("b: " + repr(b))
 
     def _different_length(self, a, b, root):
         self._set_false()
-        print("different length of list at /{}".format("/".join(root)))
-        print("len(a)={} : ".format(len(a)) + repr(a))
-        print("len(b)={} : ".format(len(b)) + repr(b))
+        self._handle("different length of list at /{}".format("/".join(root)))
+        self._handle("len(a)={} : ".format(len(a)) + repr(a))
+        self._handle("len(b)={} : ".format(len(b)) + repr(b))
 
     def _list_item_not_found(self, ele, which, root):
         self._set_false()
-        print("list {} at /{}".format(which, "/".join(root)))
-        print("has element that another list hasn't :")
-        print(repr(ele))
+        self._handle("list {} at /{}".format(which, "/".join(root)))
+        self._handle("has element that another list hasn't :")
+        self._handle(repr(ele))
 
     def _list_freq_not_match(self, root, aplace, bplace, ele, counta, countb):
         self._set_false()
-        print(
+        self._handle(
             "list at /{}, index {}, has different frequency from b at index {}:".format("/".join(root), aplace, bplace))
-        print("element is {}".format(ele))
-        print("count of list a: {}".format(counta))
-        print("count of list b: {}".format(countb))
+        self._handle("element is {}".format(ele))
+        self._handle("count of list a: {}".format(counta))
+        self._handle("count of list b: {}".format(countb))
 
     def _dict_key_not_found(self, keys, which, root):
         self._set_false()
-        print("dict {} at /{}".format(which, "/".join(root)))
-        print("has key(s) that another dict hasn't :")
-        print(keys)
+        self._handle("dict {} at /{}".format(which, "/".join(root)))
+        self._handle("has key(s) that another dict hasn't :")
+        self._handle(keys)
 
     # internal compare methods
     def _list_comp(self, a, b, root, printdiff):
@@ -292,16 +294,16 @@ class Jcompare(object):
             assert len(find) < 2, "shouldn't be this"
             if not find:
                 if printdiff:
-                    print("re compare failed, empty match, see next line")
+                    self._handle("re compare failed, empty match, see next line")
                 return False
             if not find[0] == b:
                 if printdiff:
-                    print("re compare failed, found {}, expect {}, see next line".format(find[0], b))
+                    self._handle("re compare failed, found {}, expect {}, see next line".format(find[0], b))
                 return False
             return True
 
     # user methods
-    def compare(self, a, b, ignore_list_seq=True, re_compare=True, ignore_path=None):
+    def compare(self, a, b, ignore_list_seq=True, re_compare=True, ignore_path=None, callback=print):
         """
         real compare entrance
         :param str or unicode or list or tuple or dict a: the first json string/json-like object to compare
@@ -313,8 +315,10 @@ class Jcompare(object):
         ignored. Comparing two re-patterns makes no sense so it isn't allowed
         :param list[str or unicode] or None ignore_path: a list of element-paths to be ignored when comparing. e.g.
         ["/key1/key2", "/key3/1"] maans all "ignored" in {"key1":{"key2":"ignored"},"key3":["not ignored","ignored"]}
+        :param function callback: a one-arg function to hold the difference, default to `print`
         :return bool: Whether two json string or json-like objects are equal. If not, print the differences
         """
+        self._handle = callback
         flag = False  # transferred str to object, need recursion
 
         if type(a) in [six.text_type, six.binary_type]:
@@ -334,7 +338,7 @@ class Jcompare(object):
             json.dumps(six.text_type(a), ensure_ascii=False)
             json.dumps(six.text_type(b), ensure_ascii=False)
         except TypeError:
-            print(traceback.format_exc())
+            self._handle(traceback.format_exc())
             raise TypeError("unsupported types during json check")
 
         self._res = True
@@ -345,9 +349,9 @@ class Jcompare(object):
             assert all([path[0] == u"/" or u"(/" in path for path in self._ignore_path]), "invalid ignore path"
 
         if self.print_before:
-            print(self._escape("a is {}".format(a)))
-            print(self._escape("b is {}".format(b)))
-            print("ignore_list_seq = {}, re_compare = {}, ignore_path = {}, float_fuzzy_digits = {}".format(
+            self._handle(self._escape("a is {}".format(a)))
+            self._handle(self._escape("b is {}".format(b)))
+            self._handle("ignore_list_seq = {}, re_compare = {}, ignore_path = {}, float_fuzzy_digits = {}".format(
                 ignore_list_seq, re_compare, ignore_path, self.float_fuzzy_digits))
 
         self._common_comp(a, b)

@@ -20,7 +20,7 @@ except:
 
 setup(
     name='jsoncomparedeep',
-    version='1.16',
+    version='1.17',
     description='A recursive json comparison library that handles list orders and fuzzy types',
     author='Rainy Chan',
     author_email='rainydew@qq.com',

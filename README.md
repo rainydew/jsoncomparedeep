@@ -1,6 +1,7 @@
 # json_compare
 
 A library to compare any json string/bytes/json-like-objects.
+Version 1.17 is an enhance version that supports custom handlers to handle outputs.
 Version 1.16 is a quickfix version that supports Python 3.8.
 
 ## Features
@@ -18,6 +19,7 @@ Version 1.16 is a quickfix version that supports Python 3.8.
   * Useful when compare multi records in database query result (dictionary cursor) with some fields unconcerned.
 * Fuzzy equal when handling floats. (New)
 * Python 3.8 supported. (New)
+* Custom handlers supported. (New)
 
 ## QuickStart
 
