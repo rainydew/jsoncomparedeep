@@ -3,6 +3,7 @@
 # author: Rainy Chan rainydew@qq.com
 # platform: python 2.6-2.7, 3.5-3.8+
 # demos are provided in test_json_compare.py
+# version: 1.18
 from __future__ import print_function
 import json
 import re
@@ -303,7 +304,8 @@ class Jcompare(object):
             return True
 
     # user methods
-    def compare(self, a, b, ignore_list_seq=True, re_compare=True, ignore_path=None, callback=print):
+    def compare(self, a, b, ignore_list_seq=True, re_compare=True, ignore_path=None, callback=print, strict_type=False,
+                float_fuzzy_digits=None):
         """
         real compare entrance
         :param str or unicode or list or tuple or dict a: the first json string/json-like object to compare
@@ -316,6 +318,11 @@ class Jcompare(object):
         :param list[str or unicode] or None ignore_path: a list of element-paths to be ignored when comparing. e.g.
         ["/key1/key2", "/key3/1"] maans all "ignored" in {"key1":{"key2":"ignored"},"key3":["not ignored","ignored"]}
         :param function callback: a one-arg function to hold the difference, default to `print`
+        :param bool strict_type: set True to ensure that all dict/list objects are JSON serializable. You may set it to
+        False to make some special types comparable, e.g. Decimal, bytes and struct_time, useful for db assertion.
+        BEAWARE !!! Bytes-like str (str in python2) is not supported. Since you should use json.dumps(u"hello") instead
+            of json.dumps("hello") It may raise UnicodeDecodeError if there are Chinese characters or so on.
+        :param int float_fuzzy_digits: optional, if not None, set the current float_fuzzy_digits property to this value
         :return bool: Whether two json string or json-like objects are equal. If not, print the differences
         """
         self._handle = callback
@@ -332,14 +339,16 @@ class Jcompare(object):
         else:
             json_loaded_b = b
         if flag:
-            return self.compare(json_loaded_a, json_loaded_b, ignore_list_seq, re_compare, ignore_path)
+            return self.compare(json_loaded_a, json_loaded_b, ignore_list_seq, re_compare, ignore_path, callback,
+                                strict_type)
 
-        try:
-            json.dumps(six.text_type(a), ensure_ascii=False)
-            json.dumps(six.text_type(b), ensure_ascii=False)
-        except TypeError:
-            self._handle(traceback.format_exc())
-            raise TypeError("unsupported types during json check")
+        if strict_type:
+            try:
+                json.dumps(a, ensure_ascii=False)
+                json.dumps(b, ensure_ascii=False)
+            except TypeError:
+                self._handle(traceback.format_exc())
+                raise TypeError("unsupported type found during strict json check")
 
         self._res = True
         self._ignore_list_seq = ignore_list_seq
@@ -347,6 +356,9 @@ class Jcompare(object):
         self._ignore_path = None if ignore_path is None else [self._to_unicode_if_string(path) for path in ignore_path]
         if self._ignore_path:
             assert all([path[0] == u"/" or u"(/" in path for path in self._ignore_path]), "invalid ignore path"
+
+        if float_fuzzy_digits is not None:
+            self.float_fuzzy_digits = float_fuzzy_digits
 
         if self.print_before:
             self._handle(self._escape("a is {}".format(a)))
