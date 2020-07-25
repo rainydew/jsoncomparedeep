@@ -51,9 +51,7 @@ def run_tests():
 
     long_line()
 
-    a = {"a": [1, {"k": ["ok"]}]}
-    b = {"a": [1, {"k": ["error"]}]}  # however, if we consider list order, we can locate differences deeper
-    res = cp.compare(a, b, ignore_list_seq=False)
+    res = cp.compare(a, b, ignore_list_seq=False)  # however, if we consider the order, we can locate differences deeper
     print(res)
     assert res is False
 
@@ -230,7 +228,7 @@ def run_tests():
     a = r'[r"^(2019-07-01 \d{2}:\d{2}:\d{2})$"]'
     b = ["2019-07-01 12:13:14"]
     try:
-        print("json cannot parse innter 'r' notation, so this won't work:\t" + a)
+        print("json cannot parse inner 'r' notation, so this won't work:\t" + a)
         cp.compare(a, b, ignore_list_seq=False)
     except Exception as e:
         print(e)
@@ -255,7 +253,7 @@ def run_tests():
 
     long_line()
 
-    a = [0.1+0.1+0.1]  # default we use accurate compare, since float compute causes accumulative errors
+    a = [0.1 + 0.1 + 0.1]  # default we use accurate compare, since float compute causes accumulative errors
     b = [0.3]
     res = cp.compare(a, b, ignore_list_seq=False)
     print(res)
@@ -267,6 +265,21 @@ def run_tests():
     res = cp.compare(a, b, ignore_list_seq=False)
     print(res)
     assert res is True
+
+    long_line()
+
+    a = {"key": 1}
+    b = {"key": 1.0}
+    res = cp.compare(a, b)
+    print(res)
+    assert res is True
+
+    long_line()
+
+    cp.strict_number_type = True
+    res = cp.compare(a, b)
+    print(res)
+    assert res is False
 
 
 if __name__ == "__main__":

@@ -3,7 +3,7 @@
 # author: Rainy Chan rainydew@qq.com
 # platform: python 2.6-2.7, 3.5-3.8+
 # demos are provided in test_json_compare.py
-# version: 1.18
+# version: 1.19
 from __future__ import print_function
 import json
 import re
@@ -15,13 +15,16 @@ NUMBER_TYPES = list(six.integer_types) + [float]
 
 
 class Jcompare(object):
-    def __init__(self, print_before=True, float_fuzzy_digits=0):
+    def __init__(self, print_before=True, float_fuzzy_digits=0, strict_number_type=False):
         """
-        :param bool print_before:  set True to print the objects or strings to compare first, disable it if printed
-        :param int float_fuzzy_digits:  the accuracy (number of digits) required when float compare. 0 disables fuzzy
+        :param bool print_before: Set True to print the objects or strings to compare first, disable it if printed
+        :param int float_fuzzy_digits: The accuracy (number of digits) required when float compare. 0 disables fuzzy
+        :param bool strict_number_type: Set True to let <float> 1.0 != <int> 1, however int and long types are still the
+        same. Default value means int and float with equal value can pass the test
         """
         self.print_before = print_before
         self.float_fuzzy_digits = float_fuzzy_digits
+        self.strict_number_type = strict_number_type
         self._res = None
         self._ignore_list_seq = None
         self._re_compare = True
@@ -65,9 +68,11 @@ class Jcompare(object):
         # cannot use IN here `to_key in dic.keys()`, because u"a" in ["a"] == True
         dic[to_key] = dic.pop(from_key)
 
-    @staticmethod
-    def _fuzzy_number_type(value):
-        type_dict = {x: float for x in six.integer_types}
+    def _fuzzy_number_type(self, value):
+        if not self.strict_number_type:
+            type_dict = {x: float for x in six.integer_types}
+        else:
+            type_dict = {x: int for x in six.integer_types}
         res = type(value)
         return type_dict.get(res, res)
 
@@ -305,24 +310,25 @@ class Jcompare(object):
 
     # user methods
     def compare(self, a, b, ignore_list_seq=True, re_compare=True, ignore_path=None, callback=print, strict_type=False,
-                float_fuzzy_digits=None):
+                float_fuzzy_digits=None, strict_number_type=None):
         """
         real compare entrance
-        :param str or unicode or list or tuple or dict a: the first json string/json-like object to compare
-        :param str or unicode or list or tuple or dict b: the second one
-        :param bool ignore_list_seq: set True to ignore the order when comparing arrays(lists), recursively
-        :param bool re_compare: set True to enable regular expressions for assertion. The pattern MUST contains ONE
+        :param str or unicode or list or tuple or dict a: The first json string/json-like object to compare
+        :param str or unicode or list or tuple or dict b: The second one to be compared
+        :param bool ignore_list_seq: Set True to ignore the order when comparing arrays(lists), recursively
+        :param bool re_compare: Set True to enable regular expressions for assertion. The pattern MUST contains ONE
         bracket, start with ^ or end with $, otherwise it won't be considered as an re-pattern. You can use ^.*?(sth) or
         ().*$ or so on to extract something from middle of the string. ^(.*)$ can just match any string, make this item
         ignored. Comparing two re-patterns makes no sense so it isn't allowed
         :param list[str or unicode] or None ignore_path: a list of element-paths to be ignored when comparing. e.g.
         ["/key1/key2", "/key3/1"] maans all "ignored" in {"key1":{"key2":"ignored"},"key3":["not ignored","ignored"]}
-        :param function callback: a one-arg function to hold the difference, default to `print`
-        :param bool strict_type: set True to ensure that all dict/list objects are JSON serializable. You may set it to
+        :param function callback: A one-arg function to hold the difference, default to `print`
+        :param bool strict_type: Set True to ensure that all dict/list objects are JSON serializable. You may set it to
         False to make some special types comparable, e.g. Decimal, bytes and struct_time, useful for db assertion.
         BEAWARE !!! Bytes-like str (str in python2) is not supported. Since you should use json.dumps(u"hello") instead
             of json.dumps("hello") It may raise UnicodeDecodeError if there are Chinese characters or so on.
-        :param int float_fuzzy_digits: optional, if not None, set the current float_fuzzy_digits property to this value
+        :param int float_fuzzy_digits: Optional, if not None, set the current float_fuzzy_digits property to this value
+        :param bool strict_number_type: Optional, if not None, set the current strict_number_type property to this value
         :return bool: Whether two json string or json-like objects are equal. If not, print the differences
         """
         self._handle = callback
@@ -340,7 +346,7 @@ class Jcompare(object):
             json_loaded_b = b
         if flag:
             return self.compare(json_loaded_a, json_loaded_b, ignore_list_seq, re_compare, ignore_path, callback,
-                                strict_type)
+                                strict_type, float_fuzzy_digits, strict_number_type)
 
         if strict_type:
             try:
@@ -359,6 +365,8 @@ class Jcompare(object):
 
         if float_fuzzy_digits is not None:
             self.float_fuzzy_digits = float_fuzzy_digits
+        if strict_number_type is not None:
+            self.strict_number_type = strict_number_type
 
         if self.print_before:
             self._handle(self._escape("a is {}".format(a)))

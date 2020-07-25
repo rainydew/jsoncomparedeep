@@ -2,7 +2,9 @@
 
 A library to compare any json string/bytes/json-like-objects.
 
-Version 1.18 is quickfix + enhancement version that fixes custom handlers cannot be passed recursively bug, and *float_fuzzy_digits* can be passed directly.
+Version 1.19 is an enhance version that fixes small bugs with strict_number_type supported to make <int> 1 != <float> 1.0.
+
+Version 1.18 is a quickfix + enhance version that fixes custom handlers cannot be passed recursively bug, and *float_fuzzy_digits* can be passed directly.
 
 Version 1.17 is an enhance version that supports custom handlers to handle outputs.
 
@@ -24,6 +26,7 @@ Version 1.16 is a quickfix version that supports Python 3.8.
 * Fuzzy equal when handling floats. (New)
 * Python 3.8 supported. (New)
 * Custom handlers supported. (New)
+* Strict_number_type option to make int(1) != float(1.0) supported. (New)
 
 ## QuickStart
 
