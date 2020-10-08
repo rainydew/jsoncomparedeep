@@ -281,6 +281,32 @@ def run_tests():
     print(res)
     assert res is False
 
+    long_line()
+
+    res = cp.compare({"a": {"b": 1, "c": 2, "d": 3}}, {"a": {"c": 2}}, omit_path=["/a/b", "/a/d"])
+    print(res)
+    assert res is True
+
+    long_line()
+
+    res = cp.compare({"a": {"b": 1, "c": 2}}, {"a": {"c": 2, "d": 3}}, omit_path=["/a/b"])
+    print(res)
+    assert res is False
+    
+    long_line()
+    
+    res = cp.compare({"a": [{"b": 1, "c": 2}, {"d": 3, "c": 4}]}, {"a": [{"c": 2}, {"c": 4}]}, omit_path=["/a/*/b", 
+                                                                                                          "/a/*/d"])
+    print(res)
+    assert res is True
+
+    long_line()
+
+    res = cp.compare({"a": [{"b": 1, "c": 2}, {"c": 2}, {"d": 3, "c": 4}]}, {"a": [{"c": 2}, {"c": 4}, {"c": 4}]}, 
+                     omit_path=["/a/*/b", "/a/*/d"])
+    print(res)
+    assert res is False
+
 
 if __name__ == "__main__":
     run_tests()

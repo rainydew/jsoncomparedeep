@@ -29,6 +29,7 @@ class Jcompare(object):
         self._ignore_list_seq = None
         self._re_compare = True
         self._ignore_path = None
+        self._omit_path = None
         self._handle = print
 
     @staticmethod
@@ -162,8 +163,16 @@ class Jcompare(object):
                 if not found:
                     buff = self._tuple_append(root, i)
                     self._list_item_not_found(a_i, "a", buff)
+
+            found_a = [False] * len(a)
             for j, b_j in enumerate(b):
-                if not found_b[j]:
+                found = False
+                for i, a_i in enumerate(a):
+                    if self._common_comp(a_i, b_j, printdiff=False):
+                        found_a[i] = True
+                        found = True
+                        break
+                if not found:
                     buff = self._tuple_append(root, j)
                     self._list_item_not_found(b_j, "b", buff)
             return
@@ -210,7 +219,7 @@ class Jcompare(object):
                     if countb != counta and counts_b[place][1] == i:  # to prevent printing twice
                         if not printdiff:
                             return False
-                        self._list_freq_not_match(root, i, place, a[i], counta, countb)
+                        self._list_freq_not_match(root, i, place, a[i], countb, counta)  # need to swap counter here:)
 
         if not printdiff:
             return True
@@ -218,6 +227,22 @@ class Jcompare(object):
     def _dict_comp(self, a, b, root, printdiff):
         self._turn_dict_keys_to_unicode(a)
         self._turn_dict_keys_to_unicode(b)
+
+        if self._omit_path:
+            omit_dict = {}
+            for x in self._omit_path:
+                pre, tat = x.split(u"/")[1:-1], x.split(u"/")[-1]
+                for i, v in enumerate(pre):
+                    if v == u"*" and i < len(root):
+                        pre[i] = root[i]
+                pre = tuple(pre)
+                if pre not in omit_dict:
+                    omit_dict[pre] = [tat]
+                else:
+                    omit_dict[pre].append(tat)
+            if root in omit_dict:
+                a = {k:v for k, v in a.items() if k not in omit_dict[root]}
+                b = {k:v for k, v in b.items() if k not in omit_dict[root]}
 
         ak = a.keys()  # refresh again to make sure it's unicode now
         bk = b.keys()
@@ -244,16 +269,16 @@ class Jcompare(object):
 
     def _common_comp(self, a, b, root=(), printdiff=True):
         if self._ignore_path:
-            current_path = u"/{}".format("/".join(root))
+            current_path = u"/{}".format(u"/".join(root))
 
             for ignore_item in self._ignore_path:
-                if ignore_item[0] == "^" or ignore_item[-1] == "$":
+                if ignore_item[0] == u"^" or ignore_item[-1] == u"$":
                     find = re.findall(ignore_item, current_path)
                     assert len(find) < 2, "shouldn't be this"
                     if find and find[0] == current_path:
                         return True
                 else:
-                    if u"/{}".format("/".join(root)) == ignore_item:
+                    if u"/{}".format(u"/".join(root)) == ignore_item:
                         return True
 
         a = self._common_warp(a)
@@ -289,8 +314,8 @@ class Jcompare(object):
             else:
                 return a == b
         else:
-            a_is_re = len(a) > 0 and (a[0] == "^" or a[-1] == "$")
-            b_is_re = len(b) > 0 and (b[0] == "^" or b[-1] == "$")  # lazy eval prevents index out of range error
+            a_is_re = len(a) > 0 and (a[0] == u"^" or a[-1] == u"$")
+            b_is_re = len(b) > 0 and (b[0] == u"^" or b[-1] == u"$")  # lazy eval prevents index out of range error
             if not a_is_re and not b_is_re:
                 return a == b
             assert not (a_is_re and b_is_re), "can't compare two regular expressions"
@@ -310,7 +335,7 @@ class Jcompare(object):
 
     # user methods
     def compare(self, a, b, ignore_list_seq=True, re_compare=True, ignore_path=None, callback=print, strict_type=False,
-                float_fuzzy_digits=None, strict_number_type=None):
+                float_fuzzy_digits=None, strict_number_type=None, omit_path=None):
         """
         real compare entrance
         :param str or unicode or list or tuple or dict a: The first json string/json-like object to compare
@@ -320,8 +345,8 @@ class Jcompare(object):
         bracket, start with ^ or end with $, otherwise it won't be considered as an re-pattern. You can use ^.*?(sth) or
         ().*$ or so on to extract something from middle of the string. ^(.*)$ can just match any string, make this item
         ignored. Comparing two re-patterns makes no sense so it isn't allowed
-        :param list[str or unicode] or None ignore_path: a list of element-paths to be ignored when comparing. e.g.
-        ["/key1/key2", "/key3/1"] maans all "ignored" in {"key1":{"key2":"ignored"},"key3":["not ignored","ignored"]}
+        :param list[str or unicode] or None ignore_path: a list of element-paths to be ignored when comparing value. e.g.
+        ["/key1/key2", "/key3/1"] means all "ignored" in {"key1":{"key2":"ignored"},"key3":["not ignored","ignored"]}
         :param function callback: A one-arg function to hold the difference, default to `print`
         :param bool strict_type: Set True to ensure that all dict/list objects are JSON serializable. You may set it to
         False to make some special types comparable, e.g. Decimal, bytes and struct_time, useful for db assertion.
@@ -329,6 +354,9 @@ class Jcompare(object):
             of json.dumps("hello") It may raise UnicodeDecodeError if there are Chinese characters or so on.
         :param int float_fuzzy_digits: Optional, if not None, set the current float_fuzzy_digits property to this value
         :param bool strict_number_type: Optional, if not None, set the current strict_number_type property to this value
+        :param list[str or unicode] or None omit_path: a list of element-paths to be ignored even if they are absent.
+        ["/key1/key2"] means {"key1":{"key2":"ignored"}} can match {"key1":{}}. the last path-segament MUSTBE a map key,
+        you must use * to shadow list index and it doesn't support regular expression. e.g. /key1/*/key2
         :return bool: Whether two json string or json-like objects are equal. If not, print the differences
         """
         self._handle = callback
@@ -346,7 +374,7 @@ class Jcompare(object):
             json_loaded_b = b
         if flag:
             return self.compare(json_loaded_a, json_loaded_b, ignore_list_seq, re_compare, ignore_path, callback,
-                                strict_type, float_fuzzy_digits, strict_number_type)
+                                strict_type, float_fuzzy_digits, strict_number_type, omit_path)
 
         if strict_type:
             try:
@@ -360,8 +388,13 @@ class Jcompare(object):
         self._ignore_list_seq = ignore_list_seq
         self._re_compare = re_compare
         self._ignore_path = None if ignore_path is None else [self._to_unicode_if_string(path) for path in ignore_path]
+        self._omit_path = None if omit_path is None else [self._to_unicode_if_string(path) for path in omit_path]
+        
         if self._ignore_path:
             assert all([path[0] == u"/" or u"(/" in path for path in self._ignore_path]), "invalid ignore path"
+        if self._omit_path:
+            assert all([path[0] == u"/" and path.split(u"/")[-1] not in (u"", u"*") and not path.split(u"/")[-1].
+                       isdigit() for path in self._omit_path]), "invalid omit path"
 
         if float_fuzzy_digits is not None:
             self.float_fuzzy_digits = float_fuzzy_digits
@@ -371,8 +404,8 @@ class Jcompare(object):
         if self.print_before:
             self._handle(self._escape("a is {}".format(a)))
             self._handle(self._escape("b is {}".format(b)))
-            self._handle("ignore_list_seq = {}, re_compare = {}, ignore_path = {}, float_fuzzy_digits = {}".format(
-                ignore_list_seq, re_compare, ignore_path, self.float_fuzzy_digits))
+            self._handle("ignore_list_seq = {}, re_compare = {}, ignore_path = {}, omit_path = {}, float_fuzzy_digits ="
+                         " {}".format(ignore_list_seq, re_compare, ignore_path, omit_path, self.float_fuzzy_digits))
 
         self._common_comp(a, b)
         return self._res

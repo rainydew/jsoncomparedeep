@@ -2,6 +2,8 @@
 
 A library to compare any json string/bytes/json-like-objects.
 
+Version 1.20 is an enhance version that supports *omit_path* to ignore omitted keys in dict, and fixes many bugs, esp counting message inaccurate issue when same length & element collections; and wrong not_found info when different length under *ignore_list_seq*=**True**
+
 Version 1.19 is an enhance version that fixes small bugs with strict_number_type supported to make <int> 1 != <float> 1.0.
 
 Version 1.18 is a quickfix + enhance version that fixes custom handlers cannot be passed recursively bug, and *float_fuzzy_digits* can be passed directly.
