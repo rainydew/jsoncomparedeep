@@ -29,6 +29,7 @@ Version 1.16 is a quickfix version that supports Python 3.8.
 * Python 3.8 supported. (New)
 * Custom handlers supported. (New)
 * Strict_number_type option to make int(1) != float(1.0) supported. (New)
+* Emit keys in dict compare supported. (New)
 
 ## QuickStart
 
