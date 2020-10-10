@@ -16,7 +16,7 @@ Version 1.16 is a quickfix version that supports Python 3.8.
 
 * Compare jsons and print the differences (what and where they are, recursion supported). Useful for interface testing.
 * Config whether it will ignore the order of items in a list or not, recursively.
-* Both python 26+ and 35+ supported.
+* Both python 2.6~2.7 and 3.5~3.9 supported.
 * Regular expressions supported for string to skip unconcerned keys or just to assert the format.
 * Compact **str** and **unicode** (or **bytes** and **str** in python3), they are considered equal. Good for non ascii coding languages.
 * Both **json string** (**unicode** or **binary** str) and **json object** (**dict**, **list** or **tuple**) are supported.
