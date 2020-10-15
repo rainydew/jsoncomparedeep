@@ -10,7 +10,7 @@ Version 1.18 is a quickfix + enhance version that fixes custom handlers cannot b
 
 Version 1.17 is an enhance version that supports custom handlers to handle outputs.
 
-Version 1.16 is a quickfix version that supports Python 3.8.
+Version 1.16 is a quickfix version that supports Python 3.8 (and 3.9 as well).
 
 ## Features
 
