@@ -3,7 +3,6 @@
 # author: Rainy Chan rainydew@qq.com
 # platform: python 2.6-2.7, 3.5-3.8+
 # demos are provided in test_json_compare.py
-# version: 1.19
 from __future__ import print_function
 import json
 import re

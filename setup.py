@@ -19,8 +19,8 @@ except:
     long_description = ""
 
 setup(
-    name='jsoncomparedeep',
-    version='1.20',
+    name='json-compare-deep',
+    version='2.0',
     description='A recursive json comparison library that handles list orders and fuzzy types',
     author='Rainy Chan',
     author_email='rainydew@qq.com',

@@ -2,6 +2,8 @@
 
 A library to compare any json string/bytes/json-like-objects.
 
+Version 2.0 is a rewrite to support more clear and easy-to-use functions(backward incompatible, so I started a new repo).
+
 Version 1.20 is an enhance version that supports *omit_path* to ignore omitted keys in dict, and fixes many bugs, esp counting message inaccurate issue when same length & element collections; and wrong not_found info when different length under *ignore_list_seq*=**True**
 
 Version 1.19 is an enhance version that fixes small bugs with strict_number_type supported to make <int> 1 != <float> 1.0.
@@ -16,19 +18,18 @@ Version 1.16 is a quickfix version that supports Python 3.8 (and 3.9 as well).
 
 * Compare jsons and print the differences (what and where they are, recursion supported). Useful for interface testing.
 * Config whether it will ignore the order of items in a list or not, recursively.
-* Both python 2.6-2.7 and 3.5-3.9 supported.
+* Both python 2.6-2.7 and 3.5-3.9 supported. (New)
 * Regular expressions supported for string to skip unconcerned keys or just to assert the format.
 * Compact **str** and **unicode** (or **bytes** and **str** in python3), they are considered equal. Good for non ascii coding languages.
 * Both **json string** (**unicode** or **binary** str) and **json object** (**dict**, **list** or **tuple**) are supported.
 * Support tuples, so results from pymysql.cursors.DictCursor can compare with interface response directly.
-* Json type legal check.
+* Json type legal check(strict_json).
 * Support skipping anywhere using argument like *ignore_path=["/a/1/k", "/a/1/l"]*, dict keys or list indexes. Skipped fields are regarded as match.
 * The ignore_path list now support regular expressions too. You can use *[r"^(/\d+/a)"]* as ignore_path to skip all keys named "a" in *[{"a": 1, "b": 2}, {"a": 1, "b": 4}]* but still compare the value of "b". (New)
   * Useful when compare multi records in database query result (dictionary cursor) with some fields unconcerned.
-* Fuzzy equal when handling floats. (New)
-* Python 3.8 supported. (New)
-* Custom handlers supported. (New)
-* Strict_number_type option to make int(1) != float(1.0) supported. (New)
+* Fuzzy equal when handling floats.
+* Custom handlers supported.
+* Strict_number_type option to make int(1) != float(1.0) supported.
 * Emit keys in dict compare supported. (New)
 
 ## QuickStart
@@ -48,17 +49,16 @@ pip install -U jsoncomparedeep
 a simple example
 
 ```python
-from json_compare import Jcompare
-cp=Jcompare()
-print(cp.compare({"key1":["v1","v2"],"key2":{"key3":1}},{"key1":["v2","v1"],"key2":{"key3":2}}))
+from json_compare import compare
+print(compare({"key1":["v1","v2"],"key2":{"key3":1}},{"key1":["v2","v1"],"key2":{"key3":2}}))
 ```
 
 to see
 
 ```
-a is {'key2': {'key3': 1}, 'key1': ['v1', 'v2']}
-b is {'key2': {'key3': 2}, 'key1': ['v2', 'v1']}
-ignore_list_seq = True, re_compare = True
+a is {'key1': ['v1', 'v2'], 'key2': {'key3': 1}}
+b is {'key1': ['v2', 'v1'], 'key2': {'key3': 2}}
+ignore_list_seq = True, re_compare = True, ignore_path = None, omit_path = None, float_fuzzy_digits = 0
 different value at /key2/key3
 a: 1
 b: 2
